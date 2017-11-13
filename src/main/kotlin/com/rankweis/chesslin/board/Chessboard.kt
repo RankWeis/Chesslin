@@ -3,7 +3,7 @@ package com.rankweis.chesslin.board
 import com.rankweis.chesslin.actions.Move
 import com.rankweis.chesslin.pieces.Piece
 
-data class Chessboard(val dimension: Int, val pieces: List<Piece>)
+data class Chessboard(val dimension: Int = 8, val pieces: List<Piece> = emptyList())
 
 fun Chessboard.maxIndex() : Int {
     return this.dimension - 1
