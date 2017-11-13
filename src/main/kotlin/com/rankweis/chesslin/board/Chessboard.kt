@@ -3,7 +3,7 @@ package com.rankweis.chesslin.board
 import com.rankweis.chesslin.actions.Move
 import com.rankweis.chesslin.pieces.Piece
 
-data class Chessboard(val dimension: Int = 8, val pieces: List<Piece> = emptyList())
+data class Chessboard(val dimension: Int = 8, val pieces: List<Piece> = emptyList(), val history: List<Move> = emptyList())
 
 fun Chessboard.maxIndex() : Int {
     return this.dimension - 1
@@ -13,7 +13,11 @@ fun Chessboard.maxIndex() : Int {
 fun movePiece(move: Move, board: Chessboard): Chessboard {
     return if (board.pieces.contains(move.piece) && moveWithinBounds(move, board)) {
         board.copy(
-                pieces = board.pieces.minus(move.piece).plus(move.piece.copy(tile = move.toTile)))
+                pieces = board.pieces.minus(move.piece)
+                        .plus(move.piece.copy(tile = move.toTile,
+                                              history = move.piece.history.plus(move))),
+                history = board.history.plus(move)
+        )
     } else {
         board
     }

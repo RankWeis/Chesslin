@@ -1,5 +1,6 @@
 package com.rankweis.chesslin.pieces
 
+import com.rankweis.chesslin.actions.Move
 import com.rankweis.chesslin.board.Chessboard
 import com.rankweis.chesslin.board.Tile
 import org.assertj.core.api.Assertions.assertThat
@@ -134,5 +135,40 @@ class PieceSpek : Spek({
             )
         }
 
+    }
+
+    describe("Pawn moves") {
+        it("can move two on the first move as white") {
+            val moves = legalPawnMoves(Piece(Type.PAWN, Color.WHITE, Tile(1,0)), Chessboard())
+            assertThat(moves).hasSize(2).contains(Tile(2,0), Tile(3,0))
+        }
+        it("can move two on the first move as black") {
+            val moves = legalPawnMoves(Piece(Type.PAWN, Color.BLACK, Tile(6,0)), Chessboard())
+            assertThat(moves).hasSize(2).contains(Tile(5,0), Tile(4,0))
+        }
+        it("can't move two on the first move if on the wrong square") {
+            val moves = legalPawnMoves(Piece(Type.PAWN, Color.BLACK, Tile(1,0)), Chessboard())
+            assertThat(moves).hasSize(1).contains(Tile(0,0))
+        }
+        it("can't move two on the second move if on the right square") {
+            val piece = Piece(Type.PAWN, Color.WHITE, Tile(1,0))
+            val pieceHistory = listOf(Move(piece, Tile(1,1)))
+            val moves = legalPawnMoves(piece.copy(history = pieceHistory), Chessboard())
+            assertThat(moves).hasSize(1).contains(Tile(2,0))
+        }
+
+        it("can't capture it's own color piece") {
+            val piece = Piece(Type.PAWN, Color.WHITE, Tile(2,2))
+            val rookPiece = Piece(Type.ROOK, Color.WHITE, Tile(3,3))
+            val moves = legalPawnMoves(piece, Chessboard(pieces = listOf(piece,rookPiece)))
+            assertThat(moves).hasSize(1).contains(Tile(3,2))
+        }
+
+        it("can capture it's opponents color piece") {
+            val piece = Piece(Type.PAWN, Color.WHITE, Tile(2,2))
+            val rookPiece = Piece(Type.ROOK, Color.BLACK, Tile(3,3))
+            val moves = legalPawnMoves(piece, Chessboard(pieces = listOf(piece,rookPiece)))
+            assertThat(moves).hasSize(2).contains(Tile(3,2), Tile(3,3))
+        }
     }
 })

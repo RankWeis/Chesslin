@@ -1,5 +1,6 @@
 package com.rankweis.chesslin.pieces
 
+import com.rankweis.chesslin.actions.Move
 import com.rankweis.chesslin.board.Chessboard
 import com.rankweis.chesslin.board.Tile
 import com.rankweis.chesslin.board.maxIndex
@@ -9,10 +10,14 @@ enum class Type {
 }
 
 enum class Color {
-    BLACK, WHITE
+    BLACK, WHITE;
+
+    fun opposite() : Color {
+        return if(this == WHITE) BLACK else WHITE
+    }
 }
 
-data class Piece(val type: Type, val color: Color, val tile: Tile) {
+data class Piece(val type: Type, val color: Color, val tile: Tile, val history: List<Move> = emptyList()) {
 
 }
 
@@ -61,6 +66,10 @@ fun legalMoves(piece: Piece, board: Chessboard, vararg directions: List<Tile>): 
     ).distinct()
 }
 
+fun Tile.plus(row: Int, column: Int): Tile {
+    return Tile(this.row + row, this.column + column)
+}
+
 fun legalHorizontalMoves(piece: Piece, board: Chessboard): List<Tile> {
     val right = piece.tile..Tile(piece.tile.row, board.maxIndex())
     val left = piece.tile..Tile(piece.tile.row, 0)
@@ -91,10 +100,11 @@ fun legalDiagonalMoves(piece: Piece, board: Chessboard): List<Tile> {
     return legalMoves(piece, board, upright, upleft, downright, downLeft)
 }
 
+fun inBounds(tile: Tile, board: Chessboard) : Boolean {
+    return tile.column in 0..board.maxIndex() && tile.row in 0..board.maxIndex()
+}
+
 fun legalKnightMoves(piece: Piece, board: Chessboard): List<Tile> {
-    fun Tile.plus(row: Int, column: Int): Tile {
-        return Tile(this.row + row, this.column + column)
-    }
 
     val tile = piece.tile
     return listOf(
@@ -106,6 +116,28 @@ fun legalKnightMoves(piece: Piece, board: Chessboard): List<Tile> {
             tile.plus(2, -1),
             tile.plus(-2, 1),
             tile.plus(-2, -1))
-            .filter { it.column in 0..board.maxIndex() && it.row in 0..board.maxIndex() }
+            .filter { inBounds(it, board) }
             .filter { pieceOnTile(it, board)?.color != piece.color }
+}
+
+fun Piece.pawnInStartingRow(board: Chessboard) : Boolean {
+    return this.history.isEmpty() &&
+            when (this.color) {
+                Color.WHITE -> this.tile.row == 1
+                Color.BLACK -> this.tile.row == board.maxIndex() - 1
+            }
+}
+
+fun legalPawnMoves(piece: Piece, board: Chessboard): List<Tile> {
+    val direction = if (piece.color == Color.WHITE) 1 else -1
+    val forwardMovement = if (piece.pawnInStartingRow(board)) {
+        piece.tile..piece.tile.copy(row = piece.tile.row + 2 * direction)
+    } else {
+        piece.tile..piece.tile.copy(row = piece.tile.row + direction)
+    }.filter { pieceOnTile(it, board) == null}
+
+    val potentialCaptures = listOf(piece.tile.plus(direction, 1), piece.tile.plus(direction, -1))
+            .filter { inBounds(it, board) }
+            .filter { pieceOnTile(it, board)?.color?.opposite() == piece.color  }
+    return forwardMovement.plus(potentialCaptures)
 }

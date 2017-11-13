@@ -24,9 +24,10 @@ class ChessboardSpek : Spek({
             val board = Chessboard(dimension = 8, pieces = listOf(oldPiece))
             val piece = Piece(Type.PAWN, Color.WHITE, Tile(5, 2))
             val newTile = Tile(5, 4)
-            val board2 = movePiece(Move(piece, newTile), board)
+            val move = Move(piece, newTile)
+            val board2 = movePiece(move, board)
             assertThat(board2.pieces.size).isEqualTo(1)
-            assertThat(board2.pieces.find { it.tile == newTile }).isEqualTo(piece.copy(tile = newTile))
+            assertThat(board2.pieces.find { it.tile == newTile }).isEqualTo(piece.copy(tile = newTile, history = listOf(move)))
         }
 
         it("handles absent piece movements gracefully") {
@@ -60,7 +61,6 @@ class ChessboardSpek : Spek({
             assertThat(board2.pieces.size).isEqualTo(1)
             assertThat(board2.pieces.find { it.tile == newTile }).isEqualTo(null)
             assertThat(board2.pieces.find { it.tile == oldPiece.tile }).isEqualTo(oldPiece)
-
         }
     }
 })
