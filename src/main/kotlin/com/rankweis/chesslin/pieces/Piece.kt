@@ -12,8 +12,8 @@ enum class Type {
 enum class Color {
     BLACK, WHITE;
 
-    fun opposite() : Color {
-        return if(this == WHITE) BLACK else WHITE
+    fun opposite(): Color {
+        return if (this == WHITE) BLACK else WHITE
     }
 }
 
@@ -28,7 +28,7 @@ fun pieceOnTile(tile: Tile, board: Chessboard): Piece? {
 inline fun <T> Iterable<T>.takeWhileIncluding(predicate: (T) -> Boolean): List<T> {
     var list = emptyList<T>()
     for (item in this) {
-        list = list.plus(item)
+        list += item
         if (!predicate(item)) break
     }
     return list
@@ -36,17 +36,15 @@ inline fun <T> Iterable<T>.takeWhileIncluding(predicate: (T) -> Boolean): List<T
 
 inline fun Piece.getMoves(board: Chessboard): List<Tile> {
     return when (this.type) {
-        Type.ROOK -> legalHorizontalMoves(this, board)
-                .plus(legalVerticalMoves(this, board))
-                .distinct()
+        Type.ROOK -> legalHorizontalMoves(this, board) +
+                legalVerticalMoves(this, board)
         Type.BISHOP -> legalDiagonalMoves(this, board)
-        Type.QUEEN -> legalHorizontalMoves(this, board)
-                .plus(legalVerticalMoves(this, board))
-                .plus(legalDiagonalMoves(this, board))
-                .distinct()
+        Type.QUEEN -> legalHorizontalMoves(this, board) +
+                legalVerticalMoves(this, board) +
+                legalDiagonalMoves(this, board)
         Type.KNIGHT -> legalKnightMoves(this, board)
         else -> emptyList()
-    }
+    }.distinct()
 }
 
 // Only include the final tile if the piece on there is of opposite color
@@ -59,9 +57,7 @@ fun legalMoves(piece: Piece, board: Chessboard, vararg directions: List<Tile>): 
     return directions.fold(
             emptyTile,
             { acc, list ->
-                acc.plus(
-                        removeFinalIfColorSame(piece, board, list.takeWhileIncluding { pieceOnTile(it, board) == null })
-                )
+                acc + removeFinalIfColorSame(piece, board, list.takeWhileIncluding { pieceOnTile(it, board) == null })
             }
     ).distinct()
 }
@@ -100,7 +96,7 @@ fun legalDiagonalMoves(piece: Piece, board: Chessboard): List<Tile> {
     return legalMoves(piece, board, upright, upleft, downright, downLeft)
 }
 
-fun inBounds(tile: Tile, board: Chessboard) : Boolean {
+fun inBounds(tile: Tile, board: Chessboard): Boolean {
     return tile.column in 0..board.maxIndex() && tile.row in 0..board.maxIndex()
 }
 
@@ -120,7 +116,7 @@ fun legalKnightMoves(piece: Piece, board: Chessboard): List<Tile> {
             .filter { pieceOnTile(it, board)?.color != piece.color }
 }
 
-fun Piece.pawnInStartingRow(board: Chessboard) : Boolean {
+fun Piece.pawnInStartingRow(board: Chessboard): Boolean {
     return this.history.isEmpty() &&
             when (this.color) {
                 Color.WHITE -> this.tile.row == 1
@@ -134,10 +130,10 @@ fun legalPawnMoves(piece: Piece, board: Chessboard): List<Tile> {
         piece.tile..piece.tile.copy(row = piece.tile.row + 2 * direction)
     } else {
         piece.tile..piece.tile.copy(row = piece.tile.row + direction)
-    }.filter { pieceOnTile(it, board) == null}
+    }.filter { pieceOnTile(it, board) == null }
 
     val potentialCaptures = listOf(piece.tile.plus(direction, 1), piece.tile.plus(direction, -1))
             .filter { inBounds(it, board) }
-            .filter { pieceOnTile(it, board)?.color?.opposite() == piece.color  }
-    return forwardMovement.plus(potentialCaptures)
+            .filter { pieceOnTile(it, board)?.color?.opposite() == piece.color }
+    return forwardMovement + potentialCaptures
 }

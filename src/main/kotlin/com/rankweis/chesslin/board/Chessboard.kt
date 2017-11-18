@@ -13,10 +13,10 @@ fun Chessboard.maxIndex() : Int {
 fun movePiece(move: Move, board: Chessboard): Chessboard {
     return if (board.pieces.contains(move.piece) && moveWithinBounds(move, board)) {
         board.copy(
-                pieces = board.pieces.minus(move.piece)
-                        .plus(move.piece.copy(tile = move.toTile,
-                                              history = move.piece.history.plus(move))),
-                history = board.history.plus(move)
+                pieces = board.pieces - move.piece
+                         + move.piece.copy(tile = move.toTile,
+                                           history = move.piece.history + move),
+                history = board.history + move
         )
     } else {
         board
